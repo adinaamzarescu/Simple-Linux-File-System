@@ -1,6 +1,7 @@
 #define TREE_CMD_INDENT_SIZE 4
 #define NO_ARG ""
 #define PARENT_DIR ".."
+#define TOKEN_MAX_LEN 300
 
 typedef struct FileContent FileContent;
 typedef struct FolderContent FolderContent;
