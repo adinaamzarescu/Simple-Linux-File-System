@@ -1,0 +1,7 @@
+touch A
+touch a
+touch B
+touch c
+touch d
+rm a
+ls
