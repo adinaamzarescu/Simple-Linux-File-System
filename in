@@ -1,7 +1,9 @@
-touch A
-touch a
-touch B
-touch c
-touch d
-rm a
+mkdir A
+mkdir B
+cd B
+touch b
+cd ..
+rmrec B
+mkdir C
+rmrec B
 ls

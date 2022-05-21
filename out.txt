@@ -11,8 +11,11 @@ $ cd ..
 $   
 UNRECOGNIZED COMMAND!
 
+$ mkdir C 
+
 $ rmrec B 
 
 $ ls  
+C
 A
 

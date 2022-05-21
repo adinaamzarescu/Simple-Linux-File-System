@@ -77,6 +77,8 @@ int main() {
     }
 
     freeTree(fileTree);
+    fileTree.root = NULL;
+    currentFolder = NULL;
 
     return 0;
 }
