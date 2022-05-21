@@ -60,6 +60,7 @@ int main() {
     FileTree fileTree = createFileTree(strdup("root"));
     TreeNode* currentFolder = fileTree.root;
 
+
     while (fgets(line, sizeof(line), stdin) != NULL) {
         line[strlen(line)-1] = 0;
 
@@ -75,8 +76,10 @@ int main() {
         }
         currentFolder = process_command(currentFolder, cmd, token_idx);
     }
-    
+
     freeTree(fileTree);
+    fileTree.root = NULL;
+    currentFolder = NULL;
 
     return 0;
 }

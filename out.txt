@@ -1,0 +1,18 @@
+$ mkdir A 
+
+$ mkdir B 
+
+$ cd B 
+
+$ touch b 
+
+$ cd .. 
+
+$   
+UNRECOGNIZED COMMAND!
+
+$ rmrec B 
+
+$ ls  
+A
+
