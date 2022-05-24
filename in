@@ -1,9 +1,2 @@
-mkdir A
-mkdir B
-cd B
-touch b
-cd ..
-rmrec B
-mkdir C
-rmrec B
-ls
+touch A
+rm A

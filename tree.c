@@ -35,108 +35,144 @@ FileTree *createFileTree(char* rootFolderName) {
     return new_file;
 }
 
+void free_list(List *list){
+    if(!list)
+        return;
+    if(list->head) {
+        free(list->head);
+        list->head = NULL;
+    }
+    if (list) {
+        free(list);
+        list = NULL;
+    }
+}
+
 void freeFile (TreeNode *file) {
 
     if (!file)
         return;
-    List *old_list;
+    List *old_list = NULL;
 
     if (file->parent)
         old_list = (List *)file->parent->content;
 
-    free(file->name);
-    file->name = NULL;
-
-    free(file->content);
-    file->content = NULL;
-    free(file);
-    file = NULL;
-
-    if (file)
-        if(file->parent)
-            if(!old_list->head) {
-                free(old_list->head);
-                old_list->head = NULL;
-                free(old_list);
-                old_list = NULL;
+    if (old_list) {
+        if(old_list->head && (!old_list->head->next)) {
+            if (!strcmp(old_list->head->info->name, file->name)) {
+                // Clearing the old list
+                free_list(old_list);
             }
+        }
+    }
+
+    if (file->name) {
+        free(file->name);
+    file->name = NULL;
+    }
+
+    if (file->content) {
+        free(file->content);
+        file->content = NULL;
+    }
+
+    if (file) {
+        free(file);
+        file = NULL;
+    }
+
 }
 
 void freeFolder (TreeNode *folder) {
     if (!folder)
         return;
-    List *old_list;
+    // Old_list will be the content of the parent
+    List *old_list = NULL;
     if (folder->parent)
         old_list = (List *)folder->parent->content;
 
-    List *cont = NULL;
+    // New_list will be the content of the current folder
+    List *new_list = NULL;
     if (folder->type)
-        cont = (List *)folder->content;
+        new_list = (List *)folder->content;
+    
+
     ListNode *prev = NULL;
     ListNode *node = NULL;
     // In order to free all the folders
-    if (cont) {
-        node = cont->head;
+    // If the current folder has a content
+    if (new_list) {
+        // node will be the first file in the content
+        node = new_list->head;
         if (node) {
-            if (node->next)
+            // Going step by step in the list
+            // removing them at each step
+            if (node->next) {
                 while (node->next) {
                     prev = node;
                     node = node->next;
-                    freeFolder(prev->info);
+                    // Checking the type of the file
+                    if (prev->info->type) {
+                        freeFolder(prev->info);
+                    } else {
+                        freeFile(prev->info);
+                    }
                 }
+            } else {
+                // If this is the only file in the list
+                if (node->info->type) {
+                    freeFolder(node->info);
+                } else {
+                    freeFile(node->info);
+                }
+            }
+            if(node) {
+                node = NULL;
+            }
         }
-        freeFolder(node->info);
-        free(cont->head);
-        cont->head = NULL;
-    // 0 -> file
-    // 1 -> folder
-    // int type = cont->head->info->type;
-    // TreeNode *directory = cont->head->info;
-    // if (type)
-    //     freeFolder(directory);
-    // else
-    //     freeFile(directory);
+        // The new list will become null
+        // free(new_list);
+        new_list = NULL;
     }
 
-    free(cont);
-    cont = NULL;
-
-    if (folder->content) {
-        // free(folder->content);
+    // Now the folder is empty
+    // But just to be safe
+    if (folder->content)
         folder->content = NULL;
-    }
 
-    free(folder->name);
-    folder->name = NULL;
-    free(folder);
-    folder = NULL;
-    if(cont) {
-        cont = NULL;
-    }
-    if(node) {
-        node = NULL;
-    }
-
-    if (folder)
-        if(folder->parent)
-            if(!old_list->head) {
+    // Testing if the folder was the only 
+    // one in the content of the parent
+    if (old_list) {
+        if(old_list->head && (!old_list->head->next)) {
+            if (!strcmp(old_list->head->info->name, folder->name)) {
+                // Clearing the old list
                 free(old_list->head);
                 old_list->head = NULL;
                 free(old_list);
                 old_list = NULL;
             }
+        }
+    }
+    // Now clearing the folder
+    free(folder->name);
+    folder->name = NULL;
+
+    free(folder);
+    folder = NULL;
+
 }
 
 void freeTree(FileTree *fileTree) {
     
-    FileTree *tree = fileTree;
-    TreeNode *node = tree->root;
+    FileTree *new_file = fileTree;
+    TreeNode *node = new_file->root;
 
     freeFolder(node);
     node = NULL;
-    free(tree);
-    tree = NULL;
-    // fileTree = NULL;
+    free(new_file);
+    // tree = NULL;
+    fileTree = NULL;
+    new_file = NULL;
 }
 
 void lsFolder (TreeNode* currentNode) {
@@ -160,8 +196,12 @@ void lsAll(ListNode* node) {
 }
 
 void ls(TreeNode* currentNode, char* arg) {
+    if(!currentNode)
+        return;
     List *tree = (List *) currentNode->content;
     if (!tree)
+        return;
+    if(!tree->head)
         return;
     ListNode *node = tree->head;
     TreeNode *curr;
@@ -212,28 +252,40 @@ TreeNode *findFolder(TreeNode* currentNode, char* token) {
 }
 
 TreeNode* cd(TreeNode* currentNode, char* path) {
+    // Special case if the current node is the root
+    if (!strcmp(currentNode->name, "root")) {
+        if (!strncmp(path, "..", 2)) {
+            printf("cd: no such file or directory: %s\n", path);
+            return currentNode;
+        }
+    }
     TreeNode *tree_node = currentNode;
     List *tree_list = (List *) currentNode->content;
+    char *new_path = path;
 
+    // If the content of the folder is empty
     if (!tree_list) {
-        char back[3] = "..";
-        char *new_path;
-        if (!strncmp(back, path, 2)) {
+        // Checking if the path is ".."
+        if (!strncmp(path, "..", 2)) {
             // path + 3 because besides ..
             // there will also be the '/' char
-            memcpy(new_path, path + 3, strlen(path + 3) + 1);
+            new_path = new_path + 3;
             if (!strcmp(new_path, ""))
                 tree_node = currentNode->parent;
             else
-                tree_node = cd (currentNode->parent, new_path);
+                printf("cd: no such file or directory: %s\n", path);
         } else {
             printf("cd: no such file or directory: %s\n", path);
         }
         return tree_node;
     } else {
+        // If the folder is not empty
         ListNode *node = tree_list->head;
         TreeNode *current_node = node->info;
+        // Infinite loop in order to check each node
+        // of the list
         while (1) {
+            // If the node is a folder
             if (node->info->type) {
                 char *token;
                 token = strtok(path, "/");
@@ -258,15 +310,14 @@ TreeNode* cd(TreeNode* currentNode, char* path) {
                 }
                 break;
             } else {
+                // If it's a file, not a folder
                 if (node->next)
                     node = node->next;
                 else {
-                    char back[3] = "..";
-                    char *new_path;
-                    if (!strncmp(back, path, 2)) {
+                    if (!strncmp(path, "..", 2)) {
                         // path + 3 because besides ..
                         // there will also be the '/' char
-                        memcpy(new_path, path + 3, strlen(path + 3) + 1);
+                        new_path = path + 3;
                         if (!strcmp(new_path, ""))
                             tree_node = currentNode->parent;
                         else
@@ -391,6 +442,16 @@ void mkdir(TreeNode* currentNode, char* folderName) {
 
 }
 
+List * create_new_list(TreeNode* currentNode, TreeNode *new_file) {
+    List* new_list = malloc(sizeof(*new_list));
+    new_list->head = (ListNode*)malloc(sizeof(ListNode));
+    new_list->head->next = NULL;
+    new_list->head->info = new_file;
+    new_list->head->info->parent = currentNode;
+
+    return new_list;
+}
+
 void touch(TreeNode* currentNode, char* fileName, char* fileContent) {
     TreeNode *new_file = makeFileNode(currentNode, fileName);
 
@@ -402,24 +463,20 @@ void touch(TreeNode* currentNode, char* fileName, char* fileContent) {
 
     List *old_list = (List *) currentNode->content;
     ListNode *node;
+
     if (old_list)
-     node = old_list->head;
+        node = old_list->head;
 
     if(!old_list) {
 
-        List* new_list = malloc(sizeof(*new_list));
-        new_list->head = (ListNode*)malloc(sizeof(ListNode));
-        new_list->head->next = NULL;
-        new_list->head->info = new_file;
-        new_list->head->info->parent = currentNode;
-        // new_list->head->info->content = malloc(TOKEN_MAX_LEN);
+        List * new_list = create_new_list(currentNode, new_file);
         memcpy((char *)new_list->head->info->content, fileContent, strlen(fileContent) + 1);
 
         // If this is the first folder in the cuurent directory
         node = malloc (sizeof(* node));
         node->next = NULL;
         node->info = new_file;
-        currentNode->content = (List *) malloc (sizeof(List));
+        currentNode->content = new_list;
         old_list = currentNode->content;
         // old_list->head = (ListNode*)malloc(sizeof(ListNode));
         old_list->head = node;
@@ -447,12 +504,15 @@ void rmrec(TreeNode* currentNode, char* resourceName) {
     ListNode *node = tree_list->head;
     int is_dir = 0;
     TreeNode *file = node->info;
-    ListNode *prev = node;
+    ListNode *prev = NULL;
     ListNode *target = node;
+    int found = 0;
 
     if(node) {
         while(node) {
             if(!strcmp(node->info->name, resourceName)) {
+                // There is a file with the given name
+                found = 1;
                 // Searching for name in the list
                 if (node->info->type) {
                     // Checking if it is a file, not a directory
@@ -466,8 +526,26 @@ void rmrec(TreeNode* currentNode, char* resourceName) {
             node = node->next;
         }
     }
+    if(!found) {
+        printf("rmrec: failed to remove %s: No such file or directory.\n", resourceName);
+        return;
+    }
     // First linking the previous node to the next one
-    prev->next = target->next;
+    if(!prev) {
+        if (target->next) {
+            tree_list->head = target->next;
+        } else {
+            // free(tree_list->head);
+            // tree_list->head = NULL;
+            // free(tree_list);
+            // tree_list = NULL;
+            free_list(tree_list);
+            tree_list = NULL;
+            currentNode->content = NULL;
+        }
+    } else {
+        prev->next = target->next;
+    }
     if (is_dir) {
         // Then deleting the node
         freeFolder(file);  
@@ -477,6 +555,14 @@ void rmrec(TreeNode* currentNode, char* resourceName) {
         freeFile(file);
     }
     file = NULL;
+    if(node) {
+        // free(node);
+        node = NULL;
+    }
+    if (tree_list)
+        if (!tree_list->head)
+            tree_list = NULL;
+    target = NULL;
 }
 
 
@@ -505,12 +591,15 @@ void rm(TreeNode* currentNode, char* fileName) {
             node = node->next;
         }
     }
+
     if (found) {
-        // First linking the previous node to the next one
-        prev->next = node->next;
-        // Then deleting the node
-        freeFile(file);
-        file = NULL;
+        rmrec(currentNode, fileName);
+        if (tree_list)
+            tree_list = NULL;
+        if (node)
+            node = NULL;
+        if (file)
+            file = NULL;
     }
     else {
         printf("rm: failed to remove '%s': No such file or directory", fileName);

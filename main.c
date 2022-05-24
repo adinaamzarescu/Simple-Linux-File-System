@@ -61,11 +61,6 @@ int main() {
     FileTree *fileTree = createFileTree(strdup("root"));
     TreeNode* currentFolder = fileTree->root;
 
-    // freeTree(fileTree);
-    // fileTree.root = NULL;
-    // currentFolder = NULL;
-    // free(&fileTree);
-    // fileTree = NULL;
 
     while (fgets(line, sizeof(line), stdin) != NULL) {
         line[strlen(line)-1] = 0;
@@ -84,9 +79,6 @@ int main() {
     }
 
     freeTree(fileTree);
-    fileTree = NULL;
-    // fileTree->root = NULL;
-    // currentFolder = NULL;
 
     return 0;
 }
