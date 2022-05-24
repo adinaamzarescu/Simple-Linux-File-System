@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "tree.h"
 #define LINE_MAX_LEN 1000
 #define TOKEN_MAX_LEN 300
@@ -57,8 +58,14 @@ int main() {
     char cmd[3][TOKEN_MAX_LEN];
     char *token;
 
-    FileTree fileTree = createFileTree(strdup("root"));
-    TreeNode* currentFolder = fileTree.root;
+    FileTree *fileTree = createFileTree(strdup("root"));
+    TreeNode* currentFolder = fileTree->root;
+
+    // freeTree(fileTree);
+    // fileTree.root = NULL;
+    // currentFolder = NULL;
+    // free(&fileTree);
+    // fileTree = NULL;
 
     while (fgets(line, sizeof(line), stdin) != NULL) {
         line[strlen(line)-1] = 0;
@@ -77,8 +84,9 @@ int main() {
     }
 
     freeTree(fileTree);
-    fileTree.root = NULL;
-    currentFolder = NULL;
+    fileTree = NULL;
+    // fileTree->root = NULL;
+    // currentFolder = NULL;
 
     return 0;
 }

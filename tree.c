@@ -14,9 +14,9 @@
 // --------------------------------------------------
 
 
-FileTree createFileTree(char* rootFolderName) {
+FileTree *createFileTree(char* rootFolderName) {
 
-    FileTree *new_file = malloc (sizeof(*new_file));
+    FileTree *new_file = (FileTree *) malloc (sizeof(FileTree));
     DIE(!new_file, "Malloc failed");
 
     new_file->root = (struct TreeNode *) malloc(sizeof(struct TreeNode));
@@ -30,39 +30,45 @@ FileTree createFileTree(char* rootFolderName) {
     new_file->root->parent = NULL;
     new_file->root->type = 1;
     new_file->root->content = NULL;
-    // DIE(!new_file->root->content, "Malloc failed");
-    
-    // List* children = (List*)malloc(sizeof(List));
-    // children = (List *)new_file->root->content;
 
-    // children->head = NULL;
-
-    // children->head = (ListNode *) malloc(sizeof(ListNode));
-    // children->head->next = NULL;
-    // children->head->info = NULL;
-
-    return *new_file;
-    
+    free(rootFolderName);
+    return new_file;
 }
 
 void freeFile (TreeNode *file) {
 
     if (!file)
         return;
-    char *cont = (char *)file->content;
+    List *old_list;
+
+    if (file->parent)
+        old_list = (List *)file->parent->content;
 
     free(file->name);
     file->name = NULL;
-    free(cont);
-    cont = NULL;
+
+    free(file->content);
+    file->content = NULL;
     free(file);
     file = NULL;
 
+    if (file)
+        if(file->parent)
+            if(!old_list->head) {
+                free(old_list->head);
+                old_list->head = NULL;
+                free(old_list);
+                old_list = NULL;
+            }
 }
 
 void freeFolder (TreeNode *folder) {
     if (!folder)
         return;
+    List *old_list;
+    if (folder->parent)
+        old_list = (List *)folder->parent->content;
+
     List *cont = NULL;
     if (folder->type)
         cont = (List *)folder->content;
@@ -79,18 +85,24 @@ void freeFolder (TreeNode *folder) {
                     freeFolder(prev->info);
                 }
         }
+        freeFolder(node->info);
+        free(cont->head);
+        cont->head = NULL;
     // 0 -> file
     // 1 -> folder
-    int type = cont->head->info->type;
-    TreeNode *directory = cont->head->info;
-    if (type)
-        freeFolder(directory);
-    else
-        freeFile(directory);
+    // int type = cont->head->info->type;
+    // TreeNode *directory = cont->head->info;
+    // if (type)
+    //     freeFolder(directory);
+    // else
+    //     freeFile(directory);
     }
 
+    free(cont);
+    cont = NULL;
+
     if (folder->content) {
-        free(folder->content);
+        // free(folder->content);
         folder->content = NULL;
     }
 
@@ -98,17 +110,33 @@ void freeFolder (TreeNode *folder) {
     folder->name = NULL;
     free(folder);
     folder = NULL;
-    
+    if(cont) {
+        cont = NULL;
+    }
+    if(node) {
+        node = NULL;
+    }
+
+    if (folder)
+        if(folder->parent)
+            if(!old_list->head) {
+                free(old_list->head);
+                old_list->head = NULL;
+                free(old_list);
+                old_list = NULL;
+            }
 }
 
-void freeTree(FileTree fileTree) {
+void freeTree(FileTree *fileTree) {
     
-    FileTree *tree = &fileTree;
-    TreeNode *node = (TreeNode *) tree->root;
+    FileTree *tree = fileTree;
+    TreeNode *node = tree->root;
 
     freeFolder(node);
     node = NULL;
+    free(tree);
     tree = NULL;
+    // fileTree = NULL;
 }
 
 void lsFolder (TreeNode* currentNode) {
@@ -268,7 +296,8 @@ TreeNode *makeFileNode(TreeNode* currentNode, char* fileName) {
 
     new_node->parent = currentNode;
     new_node->type = 0;
-    new_node->content = malloc(TOKEN_MAX_LEN);
+    // new_node->content = calloc(TOKEN_MAX_LEN, sizeof(char *));
+    new_node->content = NULL;
 
     return new_node;
 }
@@ -307,14 +336,6 @@ int check_existance (TreeNode* currentNode, char* folderName) {
     }
     return 0;
 }
-
-// List *createNewList(TreeNode* currentNode, TreeNode *new_file) {
-//     List* new_list = malloc(sizeof(*new_list));
-//     new_list->head = (ListNode*)malloc(sizeof(ListNode));
-//     new_list->head->next = NULL;
-//     new_list->head->info = new_file;
-//     new_list->head->info->parent = currentNode;
-//     new_list->head->info->content = NULL;
     
 // }
 
@@ -325,7 +346,7 @@ void mkdir(TreeNode* currentNode, char* folderName) {
     List *old_list = (List *) currentNode->content;
     ListNode *node;
     if (old_list)
-     node = old_list->head;
+        node = old_list->head;
 
     if(!old_list) {
         // Create a new list in which the head is the new folder
@@ -342,8 +363,7 @@ void mkdir(TreeNode* currentNode, char* folderName) {
         node->info = new_dir;
         currentNode->content = (List *) malloc (sizeof(List));
         old_list = currentNode->content;
-        old_list = (List*)malloc(sizeof(List));
-        old_list->head = (ListNode*)malloc(sizeof(ListNode));
+        // old_list->head = (ListNode*)malloc(sizeof(ListNode));
         old_list->head = node;
         memcpy(currentNode->content, old_list, sizeof(List *));
     } else {
@@ -351,13 +371,14 @@ void mkdir(TreeNode* currentNode, char* folderName) {
             ok = 0;
             printf("mkdir: cannot create directory %s: File exists", folderName);
         } else {
-            while (node->next)
+            while (node->next) {
                 // In order to add it at the end of the list
                 node = node->next;
+            }
             // The loop will stop at the previous directory
             // So in order to add the new directory in the list of 
             // directories, the last directory's next has to be changed
-            node->next = malloc(sizeof(*node->next));
+            node->next = (ListNode *)malloc(sizeof(ListNode));
             node->next->info = new_dir;
             memcpy(node->next->info->name, new_dir->name, strlen(new_dir->name) + 1);
             // node->next->info->parent = (TreeNode *) node;
@@ -366,14 +387,16 @@ void mkdir(TreeNode* currentNode, char* folderName) {
         }
     }
 
+    free(folderName);
+
 }
 
 void touch(TreeNode* currentNode, char* fileName, char* fileContent) {
     TreeNode *new_file = makeFileNode(currentNode, fileName);
 
-    new_file->content = (char *) malloc (sizeof (char) * TOKEN_MAX_LEN);
-    char *cont = new_file->content;
-    memcpy(cont, fileContent, strlen(fileContent) + 1);
+    new_file->content = calloc (TOKEN_MAX_LEN, sizeof (char));
+    // char *cont = new_file->content;
+    memcpy(new_file->content, fileContent, strlen(fileContent) + 1);
     // printf("%s\n", cont);
     // printf("%s\n", (char *)new_file->content);
 
@@ -389,7 +412,7 @@ void touch(TreeNode* currentNode, char* fileName, char* fileContent) {
         new_list->head->next = NULL;
         new_list->head->info = new_file;
         new_list->head->info->parent = currentNode;
-        new_list->head->info->content = malloc(TOKEN_MAX_LEN);
+        // new_list->head->info->content = malloc(TOKEN_MAX_LEN);
         memcpy((char *)new_list->head->info->content, fileContent, strlen(fileContent) + 1);
 
         // If this is the first folder in the cuurent directory
@@ -398,7 +421,7 @@ void touch(TreeNode* currentNode, char* fileName, char* fileContent) {
         node->info = new_file;
         currentNode->content = (List *) malloc (sizeof(List));
         old_list = currentNode->content;
-        old_list->head = (ListNode*)malloc(sizeof(ListNode));
+        // old_list->head = (ListNode*)malloc(sizeof(ListNode));
         old_list->head = node;
     } else {
         if(!check_existance(currentNode, fileName)) {
@@ -408,13 +431,15 @@ void touch(TreeNode* currentNode, char* fileName, char* fileContent) {
             // The loop will stop at the previous file
             // So in order to add the new file in the list of 
             // files, the last file's next has to be changed
-            node->next = malloc(sizeof(*node->next));
+            node->next = (ListNode *)malloc(sizeof(ListNode));
             node->next->info = new_file;
             memcpy(node->next->info->name, new_file->name, strlen(new_file->name) + 1);
             memcpy(node->next->info->content, new_file->content, strlen(new_file->content) + 1);
             node->next->next = NULL;
         }
     }
+    free(fileName);
+    free(fileContent);
 }
 
 void rmrec(TreeNode* currentNode, char* resourceName) {
@@ -423,6 +448,7 @@ void rmrec(TreeNode* currentNode, char* resourceName) {
     int is_dir = 0;
     TreeNode *file = node->info;
     ListNode *prev = node;
+    ListNode *target = node;
 
     if(node) {
         while(node) {
@@ -432,6 +458,7 @@ void rmrec(TreeNode* currentNode, char* resourceName) {
                     // Checking if it is a file, not a directory
                     is_dir = 1;
                 }
+                target = node;
                 file = node->info;
                 break;
             }
@@ -440,7 +467,7 @@ void rmrec(TreeNode* currentNode, char* resourceName) {
         }
     }
     // First linking the previous node to the next one
-    prev->next = node->next;
+    prev->next = target->next;
     if (is_dir) {
         // Then deleting the node
         freeFolder(file);  
@@ -552,88 +579,94 @@ void mv(TreeNode* currentNode, char* source, char* destination) {
 // --------------------------------------------------------------
 
 
-#define LINE_MAX_LEN 1000
-#define TOKEN_MAX_LEN 300
+// #define LINE_MAX_LEN 1000
+// #define TOKEN_MAX_LEN 300
 
-#define LS "ls"
-#define PWD "pwd"
-#define TREE "tree"
-#define CD "cd"
-#define MKDIR "mkdir"
-#define RMDIR "rmdir"
-#define TOUCH "touch"
-#define RM "rm"
-#define RMREC "rmrec"
-#define MV "mv"
-#define CP "cp"
+// #define LS "ls"
+// #define PWD "pwd"
+// #define TREE "tree"
+// #define CD "cd"
+// #define MKDIR "mkdir"
+// #define RMDIR "rmdir"
+// #define TOUCH "touch"
+// #define RM "rm"
+// #define RMREC "rmrec"
+// #define MV "mv"
+// #define CP "cp"
 
-void execute_command(char *cmd, char *arg1, char *arg2) {
-    printf("$ %s %s %s\n", cmd, arg1, arg2);
-}
+// void execute_command(char *cmd, char *arg1, char *arg2) {
+//     printf("$ %s %s %s\n", cmd, arg1, arg2);
+// }
 
-TreeNode* process_command(TreeNode* currentFolder,
-        char cmd[3][TOKEN_MAX_LEN], int token_count) {
-    execute_command(cmd[0], cmd[1], cmd[2]);
-    if (!strcmp(cmd[0], LS)) {
-        ls(currentFolder, cmd[1]);
-    } else if (!strcmp(cmd[0], PWD)) {
-        pwd(currentFolder);
-    } else if (!strcmp(cmd[0], TREE)) {
-        tree(currentFolder, cmd[1]);
-    } else if (!strcmp(cmd[0], CD)) {
-        currentFolder = cd(currentFolder, cmd[1]);
-    } else if (!strcmp(cmd[0], MKDIR)) {
-        mkdir(currentFolder, strdup(cmd[1]));
-    } else if (!strcmp(cmd[0], RMDIR)) {
-        rmdir(currentFolder, cmd[1]);
-    } else if (!strcmp(cmd[0], RM)) {
-        rm(currentFolder, cmd[1]);
-    } else if (!strcmp(cmd[0], RMREC)) {
-        rmrec(currentFolder, cmd[1]);
-    } else if (!strcmp(cmd[0], TOUCH)) {
-        touch(currentFolder, strdup(cmd[1]), strdup(cmd[2]));
-    } else if (!strcmp(cmd[0], MV)) {
-        mv(currentFolder, cmd[1], cmd[2]);
-    } else if (!strcmp(cmd[0], CP)) {
-        cp(currentFolder, cmd[1], cmd[2]);
-    } else {
-        printf("UNRECOGNIZED COMMAND!\n");
-    }
-    printf("\n");
-    return currentFolder;
-}
+// TreeNode* process_command(TreeNode* currentFolder,
+//         char cmd[3][TOKEN_MAX_LEN], int token_count) {
+//     execute_command(cmd[0], cmd[1], cmd[2]);
+//     if (!strcmp(cmd[0], LS)) {
+//         ls(currentFolder, cmd[1]);
+//     } else if (!strcmp(cmd[0], PWD)) {
+//         pwd(currentFolder);
+//     } else if (!strcmp(cmd[0], TREE)) {
+//         tree(currentFolder, cmd[1]);
+//     } else if (!strcmp(cmd[0], CD)) {
+//         currentFolder = cd(currentFolder, cmd[1]);
+//     } else if (!strcmp(cmd[0], MKDIR)) {
+//         mkdir(currentFolder, strdup(cmd[1]));
+//     } else if (!strcmp(cmd[0], RMDIR)) {
+//         rmdir(currentFolder, cmd[1]);
+//     } else if (!strcmp(cmd[0], RM)) {
+//         rm(currentFolder, cmd[1]);
+//     } else if (!strcmp(cmd[0], RMREC)) {
+//         rmrec(currentFolder, cmd[1]);
+//     } else if (!strcmp(cmd[0], TOUCH)) {
+//         touch(currentFolder, strdup(cmd[1]), strdup(cmd[2]));
+//     } else if (!strcmp(cmd[0], MV)) {
+//         mv(currentFolder, cmd[1], cmd[2]);
+//     } else if (!strcmp(cmd[0], CP)) {
+//         cp(currentFolder, cmd[1], cmd[2]);
+//     } else {
+//         printf("UNRECOGNIZED COMMAND!\n");
+//     }
+//     printf("\n");
+//     return currentFolder;
+// }
 
-int main() {
-    char line[LINE_MAX_LEN];
-    char cmd[3][TOKEN_MAX_LEN];
-    char *token;
+// int main() {
+//     char line[LINE_MAX_LEN];
+//     char cmd[3][TOKEN_MAX_LEN];
+//     char *token;
 
-    FileTree fileTree = createFileTree(strdup("root"));
-    TreeNode* currentFolder = fileTree.root;
+//     FileTree *fileTree = createFileTree(strdup("root"));
+//     TreeNode* currentFolder = fileTree->root;
 
-    // freeTree(fileTree);
+//     // freeTree(fileTree);
+//     // fileTree.root = NULL;
+//     // currentFolder = NULL;
+//     // free(&fileTree);
+//     // fileTree = NULL;
 
-    while (fgets(line, sizeof(line), stdin) != NULL) {
-        line[strlen(line)-1] = 0;
+//     while (fgets(line, sizeof(line), stdin) != NULL) {
+//         line[strlen(line)-1] = 0;
 
-        cmd[0][0] = cmd[1][0] = cmd[2][0] = 0;
+//         cmd[0][0] = cmd[1][0] = cmd[2][0] = 0;
 
-        int token_idx = 0;
-        token = strtok(line, " ");
-        while (token) {
-            strcpy(cmd[token_idx], token);
-            ++token_idx;
+//         int token_idx = 0;
+//         token = strtok(line, " ");
+//         while (token) {
+//             strcpy(cmd[token_idx], token);
+//             ++token_idx;
 
-            token = strtok(NULL, " ");
-        }
-        currentFolder = process_command(currentFolder, cmd, token_idx);
-    }
+//             token = strtok(NULL, " ");
+//         }
+//         currentFolder = process_command(currentFolder, cmd, token_idx);
+//     }
 
-    freeTree(fileTree);
-    fileTree.root = NULL;
-    currentFolder = NULL;
+//     freeTree(fileTree);
+//     fileTree = NULL;
+//     // fileTree->root = NULL;
+//     // currentFolder = NULL;
 
-    return 0;
-}
+//     return 0;
+// }
+
 
 // --------------------------------------------------------------
