@@ -13,4 +13,5 @@ $ cd B
 cd: no such file or directory: B
 
 $ ls  
-A
+a
+
