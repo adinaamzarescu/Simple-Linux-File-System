@@ -1,2 +1,2 @@
-touch A
-rm A
+mkdir A
+mkdir B

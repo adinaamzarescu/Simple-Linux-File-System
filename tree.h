@@ -1,3 +1,11 @@
+#ifndef TREE_H_
+#define TREE_H_
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "utils.h"
+
 #define TREE_CMD_INDENT_SIZE 4
 #define NO_ARG ""
 #define PARENT_DIR ".."
@@ -46,7 +54,7 @@ struct List {
 
 void ls(TreeNode* currentNode, char* arg);
 void pwd(TreeNode* treeNode);
-TreeNode* cd(TreeNode* currentNode, char* path);
+TreeNode* cd(TreeNode* currentNode, char* path, int tree_cmd);
 void tree(TreeNode* currentNode, char* arg);
 void mkdir(TreeNode* currentNode, char* folderName);
 void rm(TreeNode* currentNode, char* fileName);
@@ -57,3 +65,5 @@ void cp(TreeNode* currentNode, char* source, char* destination);
 void mv(TreeNode* currentNode, char* source, char* destination);
 FileTree *createFileTree();
 void freeTree(FileTree *fileTree);
+
+#endif  // TREE_H_

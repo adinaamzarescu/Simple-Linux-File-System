@@ -1,17 +1,7 @@
 $ mkdir A 
 
-$ cd A 
+$ touch b 
 
-$ touch a 
-
-$ cd .. 
-
-$ ls A 
-a
-
-$ cd B 
-cd: no such file or directory: B
-
-$ ls  
-a
+$ tree C 
+C [error opening dir]
 

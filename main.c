@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "tree.h"
+#include "helpers.h"
 #define LINE_MAX_LEN 1000
 #define TOKEN_MAX_LEN 300
 
@@ -21,6 +22,20 @@ void execute_command(char *cmd, char *arg1, char *arg2) {
     printf("$ %s %s %s\n", cmd, arg1, arg2);
 }
 
+char* my_strdup(char* str)
+{
+	int len;
+	char* dup;
+
+	len = strlen(str) + 1;
+	dup = malloc(len);
+	if(dup == NULL)
+		return (NULL);
+	dup = strcpy(dup, str);
+	dup[len - 1] = '\0';
+	return (dup);
+}
+
 TreeNode* process_command(TreeNode* currentFolder,
         char cmd[3][TOKEN_MAX_LEN], int token_count) {
     execute_command(cmd[0], cmd[1], cmd[2]);
@@ -31,9 +46,9 @@ TreeNode* process_command(TreeNode* currentFolder,
     } else if (!strcmp(cmd[0], TREE)) {
         tree(currentFolder, cmd[1]);
     } else if (!strcmp(cmd[0], CD)) {
-        currentFolder = cd(currentFolder, cmd[1]);
+        currentFolder = cd(currentFolder, cmd[1], 0);
     } else if (!strcmp(cmd[0], MKDIR)) {
-        mkdir(currentFolder, strdup(cmd[1]));
+        mkdir(currentFolder, my_strdup(cmd[1]));
     } else if (!strcmp(cmd[0], RMDIR)) {
         rmdir(currentFolder, cmd[1]);
     } else if (!strcmp(cmd[0], RM)) {
@@ -41,7 +56,7 @@ TreeNode* process_command(TreeNode* currentFolder,
     } else if (!strcmp(cmd[0], RMREC)) {
         rmrec(currentFolder, cmd[1]);
     } else if (!strcmp(cmd[0], TOUCH)) {
-        touch(currentFolder, strdup(cmd[1]), strdup(cmd[2]));
+        touch(currentFolder, my_strdup(cmd[1]), my_strdup(cmd[2]));
     } else if (!strcmp(cmd[0], MV)) {
         mv(currentFolder, cmd[1], cmd[2]);
     } else if (!strcmp(cmd[0], CP)) {
@@ -58,7 +73,7 @@ int main() {
     char cmd[3][TOKEN_MAX_LEN];
     char *token;
 
-    FileTree *fileTree = createFileTree(strdup("root"));
+    FileTree *fileTree = createFileTree(my_strdup("root"));
     TreeNode* currentFolder = fileTree->root;
 
 
