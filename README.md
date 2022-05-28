@@ -241,4 +241,3 @@ ________________________________________________________________________________
 1. [OCW](https://ocw.cs.pub.ro/courses/sd-ca)
 2. [STACKOVERFLOW](https://stackoverflow.com/questions/1025589/setting-variable-to-null-after-free)
 3. [WIKIPEDIA](https://en.wikipedia.org/wiki/Tree_(data_structure))
-  

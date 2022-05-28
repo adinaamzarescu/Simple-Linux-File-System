@@ -1,9 +1,9 @@
 #include "helpers.h"
 #include "tree.h"
 
-void lsAll(ListNode* node) {
+void ls_all(ListNode* node) {
     if (node && node->next) {
-        lsAll(node->next);
+        ls_all(node->next);
         printf("%s\n", node->info->name);
     } else if (!node) {
         return;
@@ -12,15 +12,15 @@ void lsAll(ListNode* node) {
     }
 }
 
-void lsFolder(TreeNode* currentNode) {
-    List *list = currentNode->content;
+void ls_folder(TreeNode* current_node) {
+    List *list = current_node->content;
     ListNode *node = list->head;
-    lsAll(node);
+    ls_all(node);
 }
 
-void lsFile(TreeNode* currentNode) {
-    char *cnt = (char *) currentNode->content;
-    printf("%s: %s\n", currentNode->name, cnt);
+void ls_file(TreeNode* current_node) {
+    char *cnt = (char *) current_node->content;
+    printf("%s: %s\n", current_node->name, cnt);
 }
 
 // Function that prints the path
@@ -33,8 +33,8 @@ void print_rec(TreeNode *treeNode) {
     }
 }
 
-TreeNode *findFolder(TreeNode* currentNode, char* token) {
-    List *tree_list = (List *) currentNode->content;
+TreeNode *find_folder(TreeNode* current_node, char* token) {
+    List *tree_list = (List *) current_node->content;
     ListNode *node = NULL;
     if (tree_list)
         node = tree_list->head;
@@ -56,7 +56,6 @@ void tree_print(ListNode *target, int level, int *folder_nr, int *file_nr) {
     int number1 = *folder_nr;
     int number2 = *file_nr;
     // First the program will show the directories
-    // ListNode *aux = target;
     ListNode *node = target;
     ListNode *prev = node;
     while (node) {
@@ -125,61 +124,70 @@ void tree_print(ListNode *target, int level, int *folder_nr, int *file_nr) {
     *file_nr = number2;
 }
 
-TreeNode *makeFileNode(TreeNode* currentNode, char* fileName) {
+TreeNode *make_file_node(TreeNode* current_node, char* fileName) {
     TreeNode *new_node = malloc(sizeof(*new_node));
+    DIE(!new_node, "Malloc failed");
 
     new_node->name = malloc(TOKEN_MAX_LEN);
+    DIE(!new_node->name, "Malloc failed");
+
     memcpy(new_node->name, fileName, strlen(fileName) + 1);
 
-    new_node->parent = currentNode;
+    new_node->parent = current_node;
     new_node->type = 0;
-    // new_node->content = calloc(TOKEN_MAX_LEN, sizeof(char *));
     new_node->content = NULL;
 
     return new_node;
 }
 
-TreeNode *makeFolderNode(TreeNode* currentNode, char* folderName) {
+TreeNode *make_folder_node(TreeNode* current_node, char* folderName) {
     TreeNode *new_node = malloc(sizeof(*new_node));
+    DIE(!new_node, "Malloc failed");
 
     new_node->name = malloc(TOKEN_MAX_LEN);
+    DIE(!new_node->name, "Malloc failed");
+
     memcpy(new_node->name, folderName, strlen(folderName) + 1);
 
-    new_node->parent = currentNode;
+    new_node->parent = current_node;
     new_node->type = 1;
     new_node->content = NULL;
 
     return new_node;
 }
 
-int check_existance(TreeNode* currentNode, char* folderName) {
+int check_existance(TreeNode* current_node, char* folderName) {
     // This function will return 1 if there
     // is a folder with the same name
     // and 0 if not
-    List *new_list = (List *) currentNode->content;
+    List *new_list = (List *) current_node->content;
     if (new_list->head) {
         ListNode *node = new_list->head;
-        TreeNode *current_node = node->info;
-        if (!strcmp(current_node->name, folderName))
+        TreeNode *curr_node = node->info;
+        if (!strcmp(curr_node->name, folderName))
             return 1;
         while (node->next) {
             node = node->next;
-            if (!strcmp(current_node->name, folderName))
+            if (!strcmp(curr_node->name, folderName))
                 return 1;
-            current_node = node->info;
+            curr_node = node->info;
         }
-        if (!strcmp(current_node->name, folderName))
+        if (!strcmp(curr_node->name, folderName))
                 return 1;
     }
     return 0;
 }
 
-List * create_new_list(TreeNode* currentNode, TreeNode *new_file) {
+List * create_new_list(TreeNode* current_node, TreeNode *new_file) {
     List* new_list = malloc(sizeof(*new_list));
+    DIE(!new_list, "Malloc failed");
+
     new_list->head = (ListNode*)malloc(sizeof(ListNode));
+    DIE(!new_list->head, "Malloc failed");
+
     new_list->head->next = NULL;
     new_list->head->info = new_file;
-    new_list->head->info->parent = currentNode;
+    new_list->head->info->parent = current_node;
 
     return new_list;
 }

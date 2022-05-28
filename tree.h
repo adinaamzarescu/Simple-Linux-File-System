@@ -52,18 +52,18 @@ struct List {
 };
 
 
-void ls(TreeNode* currentNode, char* arg);
+void ls(TreeNode* current_node, char* arg);
 void pwd(TreeNode* treeNode);
-TreeNode* cd(TreeNode* currentNode, char* path, int tree_cmd);
-void tree(TreeNode* currentNode, char* arg);
-void mkdir(TreeNode* currentNode, char* folderName);
-void rm(TreeNode* currentNode, char* fileName);
-void rmdir(TreeNode* currentNode, char* folderName);
-void rmrec(TreeNode* currentNode, char* resourceName);
-void touch(TreeNode* currentNode, char* fileName, char* fileContent);
-void cp(TreeNode* currentNode, char* source, char* destination);
-void mv(TreeNode* currentNode, char* source, char* destination);
-FileTree *createFileTree();
-void freeTree(FileTree *fileTree);
+TreeNode* cd(TreeNode* current_node, char* path, int tree_cmd);
+void tree(TreeNode* current_node, char* arg);
+void mkdir(TreeNode* current_node, char* folder_name);
+void rm(TreeNode* current_node, char* file_name);
+void rmdir(TreeNode* current_node, char* folder_name);
+void rmrec(TreeNode* current_node, char* resource_name);
+void touch(TreeNode* current_node, char* file_name, char* file_content);
+void cp(TreeNode* current_node, char* source, char* destination);
+void mv(TreeNode* current_node, char* source, char* destination);
+FileTree *create_file_tree();
+void free_tree(FileTree *file_tree);
 
 #endif  // TREE_H_

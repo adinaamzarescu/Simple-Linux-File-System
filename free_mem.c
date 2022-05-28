@@ -14,7 +14,7 @@ void free_list(List *list) {
     }
 }
 
-void freeFile(TreeNode *file) {
+void free_file(TreeNode *file) {
     if (!file)
         return;
     List *old_list = NULL;
@@ -24,6 +24,9 @@ void freeFile(TreeNode *file) {
     if (file->parent)
         old_list = (List *)file->parent->content;
 
+    // It this is the first file in the parent's
+    // content then the head of the list should
+    // be freed
     if (old_list) {
         if (old_list->head) {
             node = old_list->head;
@@ -56,7 +59,7 @@ void freeFile(TreeNode *file) {
     }
 }
 
-void freeFolder(TreeNode *folder) {
+void free_folder(TreeNode *folder) {
     if (!folder)
         return;
     // Old_list will be the content of the parent
@@ -86,26 +89,25 @@ void freeFolder(TreeNode *folder) {
                     node = node->next;
                     // Checking the type of the file
                     if (prev->info->type) {
-                        freeFolder(prev->info);
+                        free_folder(prev->info);
                     } else {
-                        freeFile(prev->info);
+                        free_file(prev->info);
                     }
                 }
                 // This loop will end at the previous node
                 // For the last node
                 if (node->info->type) {
-                    freeFolder(node->info);
+                    free_folder(node->info);
                 } else {
-                    freeFile(node->info);
+                    free_file(node->info);
                 }
-                // node->info = NULL;
                 prev = NULL;
             } else {
                 // If this is the only file in the list
                 if (node->info->type) {
-                    freeFolder(node->info);
+                    free_folder(node->info);
                 } else {
-                    freeFile(node->info);
+                    free_file(node->info);
                 }
             }
             if (node) {
@@ -113,7 +115,6 @@ void freeFolder(TreeNode *folder) {
             }
         }
         // The new list will become null
-        // free(new_list);
         new_list = NULL;
     }
 
