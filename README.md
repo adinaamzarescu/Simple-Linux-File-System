@@ -1,5 +1,5 @@
 # Simple-Linux-File-System
-## Copyright 2022 Adina Amzarescu 321CA & David Nedelcu 314CA
+## Copyright 2022 Adina Amzarescu
 
 This is the third University Project for the Data Structures course.
 It is a simulation of a simple linux file system.
