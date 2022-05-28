@@ -185,7 +185,7 @@ ________________________________________________________________________________
        
 ___________________________________________________________________________________________
 
-**Other functions**
+## **Other functions**
 ___________________________________________________________________________________________
 
 ```
@@ -227,7 +227,7 @@ ________________________________________________________________________________
     
 ___________________________________________________________________________________________
 
-Feedback :
+## Feedback :
 
 A very interesting project with some difficulties. Valgrind and gdb were our friends especially
 because the strings sent with strdup had to be freed and we weren't able to notice that right away.
@@ -237,7 +237,7 @@ anymore so thank you for this ;)
 
 ___________________________________________________________________________________________
 
-Resources:
+## Resources:
 
 1. [OCW](https://ocw.cs.pub.ro/courses/sd-ca)
 2. [STACKOVERFLOW](https://stackoverflow.com/questions/1025589/setting-variable-to-null-after-free)
