@@ -1,7 +1,0 @@
-$ mkdir A 
-
-$ touch b 
-
-$ tree C 
-C [error opening dir]
-
